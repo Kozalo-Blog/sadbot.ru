@@ -1,0 +1,877 @@
+#!/bin/bash
+
+################################################
+######  "CONSTANTS" AND GLOBAL VARIABLES  ######
+################################################
+
+DOWNLOAD_DIR=/tmp/KozConfigurator         # Temporary folder for distributives and archives.
+INSTALLATION_DIR=/opt/KozConfigurator     # Big programs will be moved here.
+BIN_DIR=/usr/local/bin                    # Small programs will be moved here, and symlinks will be created here to big ones.
+SHORTCUT_DIR=/usr/share/applications      # Here will be created .desktop files for some programs.
+APT_SOURCE_FILE=/etc/apt/sources.list     # Standard file for the list of repositories in Debian.
+APT_SOURCE_DIR=/etc/apt/sources.list.d    # Directory for files describing addititonal repositories.
+SAMBA_CONF=/etc/samba/smb.conf            # Standard file for Samba settings.
+
+HELP_MESSAGE="
+##################################################
+###########                            ###########
+###########   KozConfigurator v0.4.0   ###########
+###########                            ###########
+##################################################
+######  Leonid Kozarin <kozalo@nekochan.ru  ######
+######  License: MIT                        ######
+######  (c) Copyright Kozalo.Ru, 2017-2018  ######
+##################################################
+
+###########################################
+#####  Debian only!                  ######
+#####  Tested on Debian 9 (stretch)  ######
+###########################################
+
+This script is intended to help you to perform the initial configuration of your system after you've just installed it.
+Generally, the script represents my perception of a minimal configured and really ready-to-use Debian system.
+
+First of all, it enables \"contrib\" and \"non-free\" repositories for the standard Debian sources. If you're using a 64-bit system, it enables support for i386 packages too.
+HTTPS transport for APT also will be installed.
+
+Then the script installs some basic software (in my humble opinion):
+    - sudo, curl, vim, git
+    - zsh, oh-my-zsh (awesome shell with plugins)
+    - Midnight Commander, ranger (console file managers)
+    - dos2unix (CRLF => LF)
+    - compton (composite manager)
+    - LibreOffice
+    - GIMP
+    - VLC, mplayer, moc (music player)
+    - Chromium
+    - shutter, scrot (screenshotters)
+    - wine (with winetricks, winecfg, and a bunch of DLL modules)
+    - Telegram, VK Messenger
+    - Transmission (torrent client)
+    - neofetch (prints system information)
+    - caja-open-terminal or nautilus-open-terminal
+    - Kazam (screen video recorder)
+    - remmina (remote desktop client)
+    - Java Runtime Environment
+    - cmatrix (screensaver)
+    - links2 (console browser)
+    - htop, iotop, tcptrack
+    - zip, unzip, p7zip
+    - guake (drop-down terminal)
+
+Also, it installs some drivers for your hardware. The rest of software are optional. You're able to choose which programs to install by your own.
+Just pass corresponding parameters when you runs the script. For instance, this example explains how to install ALL programs:
+
+su -c './KozConfigurator.sh -gcntvwpajsei'        # Don't forget to run the script on behalf of the root!
+
+Let's consider all possible options:
+
+    Gamer's set [-g]:
+        sgfxi (a helper script to let you install proprietary video card drivers with ease)
+        Steam
+        PlayOnLinux
+        mesa-utils
+
+    Cloud services and synchronization set [-c]:
+        Yandex.Disk
+        Dropbox
+
+    Set for building a local network [-n]:
+        Samba
+        smbclient, cifs-utils
+        ksharman (self-made script to make easier for you to share folders)
+        kremount (self-made script to help you mount remote folders in the local network)
+
+    Anonymous' set [-t]:
+        Tor Browser
+
+    Virtualization set [-v]:
+        VirtualBox, dkms
+
+    Basic set for developers (it will be installed if you choose at least one of options below):
+        Git, Mercurial
+        TortoiseHg, gitg
+        Sublime Text 3
+        FiraCode (font with ligatures)
+
+    Web developer's set [-w]:
+        Apache2, PHP (+ debpear), MySQL, PhpMyAdmin
+        SQLite 3
+        Composer
+        NodeJS, npm, bower
+        PhpStorm, DataGrip
+
+    Python developer's set [-p]:
+        python, python3 (if not installed yet for any reason)
+        pip
+        SQLite 3
+        PyCharm
+
+    Android developer's set [-a]:
+        Android Studio
+
+    Java developer's set [-j]:
+        IntelliJ IDEA
+
+    C# developer's set [-s]:
+        MonoDevelop
+
+    Embedded developer's set [-e]:
+        gcc-avr, binutils-avr, avr-libc
+        avrdude
+        minicom
+
+    i3 set [-i]:
+        i3 (tiling window manager)
+        i3blocks (status bar)
+        feh (image viewer with ability to set a background)
+        lxappearance (utility to change GTK themes)
+        pavucontrol, pactl (audio management)
+        dconf-editor
+        xserver-xorg, xinit, xclip (X Window System)
+        lightdm (display manager)
+        network-manager-gnome
+        gxkb (keyboard layout switcher)
+
+Note, despite the fact that most of the software are installed automatically, Wine will require your attention to click some buttons and manually download one file from the Internet.
+Another very important thing is the script makes an assumption that you've chosen region based repositories like \"http://ftp.ru.debian.org/debian\".
+If this assumption is not true, it downloads software from the main repository (\"http://ftp.debian.org/debian\").
+After the script finishes its job, execute you can manually restore original repositories in the $APT_SOURCE_FILE using the $APT_SOURCE_FILE.bak file.
+
+Also, the script creates links for the programs to let you run them using the desktop environment.
+All big programs (such as JetBrains' software, for example) will be installed in the $INSTALLATION_DIR directory. But symlinks for them will be created in the $BIN_DIR directory.
+"
+
+# Switch to execute the install_basicdev_software function only once
+BASICDEV_ALREADY_INSTALLED=false
+# The name of the current release of Debian. Now it's "jessie", for example.
+RELEASE=$(lsb_release -a 2>/dev/null | grep 'Codename' | cut -f2)
+# As we discussed above, the script tries to use local Debian repositories. So, for me this variable is ".ru".
+COUNTRY=$(cat $APT_SOURCE_FILE | grep -o 'ftp\.[a-z]\{2\}\.debian' | head -n1 | grep -o '\.[a-z]\+\.' | grep -o '\.[a-z]\+')
+# If we're going to develop applications in Java or use any IDE based on the platform IntelliJ IDEA, it may be necessary to install the last proprietary JDK by Oracle.
+OFFER_JDK_INSTALLATION=false
+
+# Installation variants:
+G_MODE=false    # Games
+C_MODE=false    # Clouds
+N_MODE=false    # Network
+T_MODE=false    # Tor
+V_MODE=false    # Virtualization
+# Developer modes:
+W_MODE=false    # Web
+P_MODE=false    # Python
+A_MODE=false    # Android
+J_MODE=false    # Java
+S_MODE=false    # C#
+E_MODE=false    # Embedded
+I_MODE=false    # i3
+
+
+################################################
+
+
+################################
+######  HELPER FUNCTIONS  ######
+################################
+
+# Downloads a file to the special folder we discussed above and changes the working directory to this folder.
+# Usage: fetch_dist <name for the file> <link>
+# Depends on: $DOWNLOAD_DIR.
+function fetch_dist {
+    mkdir -p "$DOWNLOAD_DIR/$1"
+    cd "$DOWNLOAD_DIR/$1"
+    wget -O "$1" "$2"
+}
+
+
+# Creates a .desktop file to let the user run programs via the desktop environment.
+# Usage: make_shortcut <path or name of executable file> <name of program> <category (-ies) of program> [path to icon*]
+# * If it's not set, "applications-other" is used instead.
+# Depends on: $SHORTCUT_DIR.
+function make_shortcut {
+    if [[ -n "$4" ]]; then
+        local ICON_PATH="$4"
+    else
+        local ICON_PATH="applications-other"
+    fi
+
+    local DESKTOP_FILE="
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Terminal=false
+Categories=$3
+Exec=$1
+Name=$2
+Icon=$ICON_PATH
+"
+
+    echo "$DESKTOP_FILE" > "$SHORTCUT_DIR/$2.desktop"
+}
+
+
+# Creates a desktop file in the autostart directory.
+# Usage: autostart [name] <command>
+# Depends on: $AUTOSTART_DIR.
+function autostart {
+    if [[ -z "$2" ]]; then
+        local COMMAND="$1"
+    else
+        local COMMAND="$2"
+    fi
+
+    local DESKTOP_FILE="
+[Desktop Entry]
+Type=Application
+Exec=$COMMAND
+Name=$1
+"
+
+    echo "$DESKTOP_FILE" > "$AUTOSTART_DIR/$1.desktop"
+}
+
+
+# Used to let the user change the list of software interactively.
+# Usage: confirm <name of variable> <message>
+function confirm {
+    read -p "$2 (y/n) " mode
+    case "$mode" in
+        [Yy]* ) eval $1=true;;
+        [Nn]* ) eval $1=false;;
+        *) echo "Skipped! It's still set to ${!1}."
+    esac
+}
+
+
+# Used to print information messages to the screen.
+# Usage: heading <message>
+function heading {
+    echo
+    echo "$1"
+    echo
+}
+
+
+# As the name of this function says, it's used to check if some program installed or not.
+# Prints an information message to the user if the program already exists.
+# Usage: check_not_installed <program>
+# Depends on: heading.
+# Returns:
+#   0 (true)  - if a checked program is not installed yet;
+#   1 (false) - if the program is already installed.
+function check_not_installed {
+    if hash "$1" 2>/dev/null; then
+        heading "It seems that \"$1\" is already installed. Skipped."
+        return 1
+    else
+        return 0
+    fi
+}
+
+
+# Checks if any of the sets has been performed already. If not, calls the corresponding function.
+# Usage: check_basicdev_software
+# Depends on: install_basicdev_software, $BASICDEV_ALREADY_INSTALLED
+function check_basicdev_software {
+    if [[ $BASICDEV_ALREADY_INSTALLED == false ]]; then
+        install_basicdev_software;
+    fi
+}
+
+
+# Calls some function if a given condition is true.
+# Usage: call_if <condition> <name of function>
+function call_if {
+    if [[ "${!1}" == true ]]; then
+        "$2"
+    fi
+}
+
+
+# Copies "example" file to "example.bak"
+# Usage: backup <path>
+function backup {
+    cp "$1" "$1.bak"
+}
+
+
+################################
+
+
+######################################
+######  INSTALLATION FUNCTIONS  ######
+######################################
+
+# Usage of all functions in this category: just call them!
+
+# Replaces the list of repositories, enables support of i386 applications for 64-bit systems, and installs HTTPS transport protocol.
+# Depends on: heading, backup, $APT_SOURCE_FILE, $REPOSITORIES.
+function initialization {
+    heading "Initialization..."
+
+    local REPOSITORIES="
+deb http://ftp$COUNTRY.debian.org/debian/ $RELEASE main contrib non-free
+deb-src http://ftp$COUNTRY.debian.org/debian/ $RELEASE main contrib non-free
+
+deb http://security.debian.org/ $RELEASE/updates main contrib non-free
+deb-src http://security.debian.org/ $RELEASE/updates main contrib non-free
+
+deb http://ftp$COUNTRY.debian.org/debian/ $RELEASE-updates main contrib non-free
+deb-src http://ftp$COUNTRY.debian.org/debian/ $RELEASE-updates main contrib non-free
+
+deb http://ftp$COUNTRY.debian.org/debian/ $RELEASE-backports main contrib non-free
+deb-src http://ftp$COUNTRY.debian.org/debian/ $RELEASE-backports main contrib non-free
+
+"
+
+    if [[ -z "$RELEASE" ]]; then
+        echo "Couldn't determine the version of your installed Debian distributive."
+        exit
+    fi
+
+    backup "$APT_SOURCE_FILE"
+    echo "$REPOSITORIES" > "$APT_SOURCE_FILE"
+
+    if [[ "$(uname -m)" == "x86_64" ]]; then
+        dpkg --add-architecture i386
+    fi
+
+    apt-get update
+    apt-get install -y apt-transport-https
+
+    # It's better to create the folders here to prevent code duplication and a lot of errors.
+    mkdir -p "$INSTALLATION_DIR"
+    mkdir -p "$AUTOSTART_DIR"
+}
+
+
+# Set of some drivers
+# List of supported devices:
+#   - Broadcom BCM43* Wireless Adapters
+# Depends on: heading.
+function install_drivers {
+    heading "I'm gonna pimp your ride, driver!"
+
+    if [[ -n $(dmesg | grep 'unable to load firmware patch rtl_nic/rt') ]]; then
+        apt-get install -y firmware-realtek
+    fi
+
+    if [[ -n $(lspci | grep 'BCM43') ]]; then
+        apt-get install -y broadcom-sta-dkms
+    fi
+}
+
+
+# Basic set of software
+# Depends on: heading, fetch_dist, make_shortcut, autostart, $DOWNLOAD_DIR, $APT_SOURCE_DIR.
+function install_basic_software {
+    heading "Basic software installation..."
+
+    apt-get install -y sudo software-properties-common dirmngr curl vim-gnome zsh dos2unix compton libreoffice chromium gimp vlc mc ranger shutter scrot \
+    gnome-web-photo transmission kazam remmina links2 moc mplayer caca-utils htop iotop tcptrack p7zip zip unzip guake cmatrix default-jre neofetch git \
+    command-not-found autojump
+
+    timedatectl set-ntp true
+
+    # Enables "sudo" command for the current user.
+    usermod -aG sudo "$USERNAME"
+
+    echo
+    echo "I'm going to install 'oh-my-zsh' for you. You'll have to type 'exit', when the installation script enters into 'zsh', to proceed."
+    su -c 'sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"' "$USERNAME"
+    chsh -s /usr/bin/zsh "$USERNAME"
+
+    # We're going to use a composite manager at the startup to let programs provide us transparent windows.
+    autostart compton 'compton'
+    # Let's load all modules of Shutter at the startup as well.
+    autostart shutter 'shutter -v'
+    # The drop-down terminal also should be loaded at start-up to work.
+    autostart guake 'guake'
+
+    if ! check_not_installed caja; then
+        apt-get install -y caja-open-terminal
+    fi
+
+    if ! check_not_installed nautilus; then
+        apt-get install -y nautilus-open-terminal
+    fi
+
+    mkdir -p "$DOWNLOAD_DIR"
+
+    if check_not_installed wine; then
+        wget -O - "$DOWNLOAD_DIR/WineHqKey" "https://dl.winehq.org/wine-builds/Release.key" | apt-key add -
+        echo "deb https://dl.winehq.org/wine-builds/debian/ $RELEASE main" > "$APT_SOURCE_DIR/wine.list"
+    fi
+
+    if check_not_installed wine; then
+        apt-get update
+        apt-get install -y winehq-devel winetricks
+        apt-get -fy install
+
+        # Runs auto configuration for wine and installs some common libraries.
+        su -c 'winecfg' "$USERNAME"     # These commands should be run for a specific user
+        su -c 'winetricks corefonts d3dx10 d3dx11_42 d3dx11_43 d3dx9 d3dx9_26 d3dx9_28 d3dx9_31 d3dx9_35 d3dx9_36 d3dx9_39 d3dx9_42 d3dx9_43 directx9 physx wmp9 xact xact_jun2010 xinput xna31 vcrun2008' "$USERNAME"
+    fi
+
+    if check_not_installed telegram; then
+        if [[ "$(uname -m)" == "x86_64" ]]; then
+            fetch_dist Telegram "https://telegram.org/dl/desktop/linux"
+        else
+            fetch_dist Telegram "https://telegram.org/dl/desktop/linux32"
+        fi
+
+        local TELEGRAM_DIR="/home/$USERNAME/.TelegramDesktop"
+        mkdir -p "$TELEGRAM_DIR"
+        
+        tar -Jxvf Telegram -g Telegram -C .
+        mv Telegram/Telegram "$TELEGRAM_DIR/Telegram"
+        mv Telegram/Updater "$TELEGRAM_DIR/Updater"
+
+        ln -s "$TELEGRAM_DIR/Telegram" "$BIN_DIR/telegram"
+        autostart Telegram "$TELEGRAM_DIR/Updater"
+    fi
+
+    if check_not_installed vk; then
+        if [[ "$(uname -m)" == "x86_64" ]]; then
+            local ARCH=64
+        else
+            local ARCH=32
+        fi
+        fetch_dist VK "https://desktop.userapi.com/get_last?platform=linux$ARCH&branch=master&packet=deb"
+        dpkg -i VK
+    fi
+}
+
+
+# Gamer's set
+# Depends on: heading, check_not_installed, fetch_dist.
+function install_gaming_software {
+    heading "I'm gettings things ready for playing..."
+
+    # Script for auto driver installation. One minus: it must be run out of the desktop environment.
+    if check_not_installed sgfxi; then
+        cd /usr/local/bin && wget -Nc smxi.org/sgfxi && chmod +x sgfxi
+    fi
+
+    if check_not_installed steam; then
+        fetch_dist Steam "https://steamcdn-a.akamaihd.net/client/installer/steam.deb"
+        dpkg -i Steam
+    fi
+
+    apt-get install -y playonlinux mesa-utils
+}
+
+
+# Cloud services and synchronization set
+# Depends on: heading, fetch_dist, autostart, $INSTALLATION_DIR, $BIN_DIR.
+function install_cloud_software {
+    heading "I'm ascending to the clouds..."
+
+    if check_not_installed 'yandex-disk'; then
+        if [[ "$(uname -m)" == "x86_64" ]]; then
+            fetch_dist YandexDisk "http://repo.yandex.ru/yandex-disk/yandex-disk_latest_amd64.deb"
+        else
+            fetch_dist YandexDisk "http://repo.yandex.ru/yandex-disk/yandex-disk_latest_i386.deb"
+        fi
+
+        dpkg -i YandexDisk
+    fi
+
+    if check_not_installed dropbox; then
+        if [[ "$(uname -m)" == "x86_64" ]]; then
+            fetch_dist Dropbox "https://www.dropbox.com/download?plat=lnx.x86_64"
+        else
+            fetch_dist Dropbox "https://www.dropbox.com/download?plat=lnx.x86"
+        fi
+
+        tar -zxvf Dropbox
+        mv '.dropbox-dist' "$INSTALLATION_DIR/Dropbox"
+
+        ln -s "$INSTALLATION_DIR/Dropbox/dropboxd" "$BIN_DIR/dropbox"
+        autostart dropbox
+    fi
+}
+
+
+# Set for building a local network
+# Depends on: heading, backup, check_not_installed, $INSTALLATION_DIR, $BIN_DIR, $SAMBA_CONF.
+function install_network_software {
+    heading "Computers in your local network will be friends again..."
+
+    local GLOBAL_SETTINGS="[global]
+workgroup = $(dnsdomainname)
+netbios name = $(hostname)
+security = user
+map to guest = Bad User
+browseable = yes
+"
+
+    local BIN_FILE="#!/bin/bash
+
+if [[ \"\$EUID\" -ne 0 ]]; then
+    echo \"Please, run me with root permissions!\"
+    exit
+fi
+
+python \"$INSTALLATION_DIR/ksharman.py\" \"\$@\"
+"
+
+    apt-get install -y samba smbclient cifs-utils
+
+    backup "$SAMBA_CONF"
+    echo "$GLOBAL_SETTINGS" > "$SAMBA_CONF"
+
+    smbpasswd -a "$USERNAME"
+    service smbd restart
+    
+    if check_not_installed ksharman; then
+        fetch_dist ksharman "http://nekochan.ru/linux/ksharman"
+        mv ksharman "$INSTALLATION_DIR/ksharman.py"
+        echo "$BIN_FILE" > "$BIN_DIR/ksharman"
+        chmod +x "$INSTALLATION_DIR/ksharman.py" "$BIN_DIR/ksharman"
+    fi
+
+    if check_not_installed kremount; then
+        fetch_dist kremount "http://nekochan.ru/linux/kremount"
+        mv kremount "$BIN_DIR/kremount"
+        chmod +x "$BIN_DIR/kremount"
+    fi
+}
+
+
+# Anonymous' set
+# Depends on: heading.
+function install_anonymous_software {
+    heading "We are Anonymous. We do not forgive. We do not forget. We are Legion."
+    apt-get install torbrowser-launcher
+}
+
+
+# Virtualization set
+# Depends on: heading.
+function install_virtualization_software {
+    heading "Setting virtual reality up..."
+    apt-get install -y virtualbox dkms
+}
+
+
+# Basic set for developers
+# Depends on: heading, fetch_dist.
+function install_basicdev_software {
+    BASICDEV_ALREADY_INSTALLED=true
+    heading "A bunch of basic programs for software developers is installing..."
+    
+    local STARUML_VERSION=$(curl "http://staruml.io/download" | grep "64-bit.deb" | head -n1 | grep -o 'v[0-9.]\+' | head -n1)
+    # libgcrypt11 is a dependency for the current StarUML package. Unfortunatelly, it's out of modern repositories. So we have to install it manually.
+    local LIBGCRYPT_FILENAME=$(curl "https://packages.debian.org/wheezy/amd64/libgcrypt11/download" | grep -o "libgcrypt11/.\+_amd64.deb" | grep -o "[^/]\+_")
+
+    apt-get install -y mercurial gitg tortoisehg fonts-firacode
+    
+    echo "You can set your name and email for Git and Mercurial right now."
+    read -p "Type your name, or just press Enter to skip this step: " vcs_name
+    if [[ -n "$vcs_name" ]]; then
+        read -p "What's your email address: " vcs_email
+
+        local HG_CONFIG="[ui]
+username = $vcs_name <$vcs_email>
+"
+
+        git config --global user.name "$vcs_name"
+        git config --global user.author "$vcs_email"
+
+        if [[ -z $(cat "~$USERNAME/.hgrc" | grep "$HG_CONFIG") ]]; then
+            echo "$HG_CONFIG" >> "~$USERNAME/.hgrc"
+        fi
+        echo
+    fi
+
+    if check_not_installed subl; then
+        wget -O - 'https://download.sublimetext.com/sublimehq-pub.gpg' | apt-key add -
+        echo "deb https://download.sublimetext.com/ apt/stable/" > /etc/apt/sources.list.d/sublime-text.list
+        apt-get update && apt-get install sublime-text
+    fi
+
+    if check_not_installed staruml; then
+        if [[ "$(uname -m)" == "x86_64" ]]; then
+            fetch_dist libgcrypt11 "http://security.debian.org/debian-security/pool/updates/main/libg/libgcrypt11/${LIBGCRYPT_FILENAME}amd64.deb"
+            fetch_dist StarUML "http://staruml.io/download/release/$STARUML_VERSION/StarUML-$STARUML_VERSION-64-bit.deb"
+        else
+            fetch_dist libgcrypt11 "http://security.debian.org/debian-security/pool/updates/main/libg/libgcrypt11/${LIBGCRYPT_FILENAME}i386.deb"
+            fetch_dist StarUML "http://staruml.io/download/release/$STARUML_VERSION/StarUML-$STARUML_VERSION-32-bit.deb"
+        fi
+
+        dpkg -i ../libgcrypt11/libgcrypt11 StarUML
+        apt --fix-broken -y install
+    fi
+
+    if check_not_installed kjbupdater; then
+        fetch_dist kjbupdater "http://nekochan.ru/linux/kjbupdater"
+        mv kjbupdater "$INSTALLATION_DIR/kjbupdater.sh"
+        ln -s "$INSTALLATION_DIR/kjbupdater.sh" "$BIN_DIR/kjbupdater"
+        chmod +x "$INSTALLATION_DIR/kjbupdater.sh" "$BIN_DIR/kjbupdater"
+    fi 
+}
+
+
+# Web developer's set
+# Depends on: heading, check_basicdev_software, $DOWNLOAD_DIR, $APT_SOURCE_DIR, kjbupdater.
+function install_webdev_software {
+    check_basicdev_software
+    heading "Do you love PHP? Anyway, I'm installing it and other stuff to force it working..."
+
+    cd "$DOWNLOAD_DIR"
+
+    echo "deb http://packages.dotdeb.org $RELEASE all" > "$APT_SOURCE_DIR/dotdeb.list"
+    echo "deb-src http://packages.dotdeb.org $RELEASE all" >> "$APT_SOURCE_DIR/dotdeb.list"
+    wget -O - 'https://www.dotdeb.org/dotdeb.gpg' | apt-key add -
+    apt-get update
+
+    apt-get install -y apache2 mysql-server php php-mysql php-sqlite3 php-mbstring phpmyadmin sqlite3 debpear nodejs npm
+    mysql_secure_installation
+
+    ln -s /usr/bin/nodejs /usr/bin/node
+
+    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    php composer-setup.php
+    mv composer.phar "$BIN_DIR/composer"
+
+    npm install -g bower
+
+    kjbupdater -n PhpStorm
+    kjbupdater -n DataGrip
+}
+
+
+# Python developer's set
+# Depends on: heading, check_basicdev_software, kjbupdater.
+function install_pydev_software {
+    check_basicdev_software
+    heading "What does Python hiss? Shhhhhh...'"
+
+    apt-get install -y python python3 python-pip python3-pip sqlite3
+    kjbupdater -n PyCharm
+}
+
+
+# Android developer's set
+# Depends on: heading, check_basicdev_software, fetch_dist, make_shortcut, $INSTALLATION_DIR, $BIN_DIR.
+function install_androiddev_software {
+    check_basicdev_software
+    heading "How long ago did you check the battery charge level on your Android smartphone? I think it's about time."
+    OFFER_JDK_INSTALLATION=true
+
+    if ! check_not_installed 'android-studio'; then
+        return
+    fi
+
+    local DOWNLOAD_LINK=$(curl -s "https://developer.android.com/studio/index.html" | grep "linux.zip" | grep -o 'https://dl.google.com/dl/android/studio/ide-zips/[0-9.]\+/android-studio-ide-[0-9.]\+-linux.zip')
+
+    fetch_dist AndroidStudio "$DOWNLOAD_LINK"
+    unzip AndroidStudio
+    mv 'android-studio' "$INSTALLATION_DIR/android-studio"
+
+    ln -s "$INSTALLATION_DIR/android-studio/bin/studio.sh" "$BIN_DIR/android-studio"
+    make_shortcut 'android-studio.sh' AndroidStudio 'Development;IDE;' "$INSTALLATION_DIR/android-studio/bin/studio.png"
+    
+    if [[ "$(uname -m)" == "x86_64" ]]; then
+        apt-get install -y libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
+    fi
+}
+
+
+# Java developer's set
+# Depends on: heading, check_basicdev_software, kjbupdater.
+function install_javadev_software {
+    check_basicdev_software
+    heading "How much RAM do you have? JVM loves to eat!"
+    OFFER_JDK_INSTALLATION=true
+
+    kjbupdater -n IDEA
+}
+
+
+# C# developer's set
+# Depends on: heading, check_basicdev_software.
+function install_csharpdev_software {
+    check_basicdev_software
+    heading "OMG, Microsoft is capturing your Debian system!"
+
+    apt-get install -y monodevelop
+}
+
+# Embedded developer's set
+# Depends on: heading, check_basicdev_software.
+function install_embeddeddev_software {
+    check_basicdev_software
+    heading "Byte f**kers are the elite of developers!"
+
+    apt-get install -y gcc-avr avrdude binutils-avr avr-libc minicom
+}
+
+
+# i3 set
+# Depends on: heading.
+function install_i3wm {
+    heading "Tiling WMs are for true hackers!"
+    apt-get install -y xserver-xorg xinit xclip i3 i3blocks lightdm dconf-editor feh network-manager-gnome gxkb pavucontrol lxappearance arc-theme moka-icon-theme
+
+    echo "deb http://ppa.launchpad.net/no1wantdthisname/ppa/ubuntu trusty main" > "$APT_SOURCE_DIR/infinality.list"
+    echo "deb-src http://ppa.launchpad.net/no1wantdthisname/ppa/ubuntu trusty main" >> "$APT_SOURCE_DIR/infinality.list"
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E985B27B 
+    apt-get update && apt-get install fontconfig-infinality
+
+    echo "Depending of the fonts you prefer to use, select a rendering style:"
+    sudo bash /etc/fonts/infinality/infctl.sh setstyle
+}
+
+######################################
+
+
+############################
+######  MAIN SECTION  ######
+############################
+
+# Prints the value of $HELP_MESSAGE if the user has run script with arguments such as "help", "--help", or "-h".
+if [[ "$1" == *help || "$1" == '-h' ]]; then
+    echo "$HELP_MESSAGE"
+    exit
+fi
+
+# Checks if the script has been run on behalf of root.
+if [[ "$EUID" -ne 0 ]]; then
+    echo "Please, run me with root permissions!"
+    exit
+fi
+
+echo "Let's check what you're going to install..."
+echo -e "\t- Basic set of software"
+
+while getopts gcntvwpajsei option
+do
+    case "${option}"
+    in
+        g) G_MODE=true; echo -e "\t- Gamer's set";;
+        c) C_MODE=true; echo -e "\t- Cloud services and synchronization set";;
+        n) N_MODE=true; echo -e "\t- Set for building a local network";;
+        t) T_MODE=true; echo -e "\t- Anonymous' set";;
+        v) V_MODE=true; echo -e "\t- Virtualization set";;
+        w) W_MODE=true; echo -e "\t- Web developer's set";;
+        p) P_MODE=true; echo -e "\t- Python developer's set";;
+        a) A_MODE=true; echo -e "\t- Android developer's set";;
+        j) J_MODE=true; echo -e "\t- Java developer's set";;
+        s) S_MODE=true; echo -e "\t- C# developer's set";;
+        e) E_MODE=true; echo -e "\t- Embedded developer's set";;
+        i) I_MODE=true; echo -e "\t- i3 set";;
+    esac
+done
+
+read -p "Right? (Y/n): " consent
+if [[ "$consent" == [Nn]* ]]; then
+    echo "OK. You may change the list here."
+    confirm G_MODE "Are you going to play video games?"
+    confirm C_MODE "Are you going to synchronize your files with cloud storages?"
+    confirm N_MODE "Are you going to build a local network?"
+    confirm T_MODE "Are you going to use the Internet anonymously?"
+    confirm V_MODE "Are you going to use virtual operating systems?"
+    confirm W_MODE "Are you going to develop websites?"
+    confirm P_MODE "Are you going to write code in Python?"
+    confirm A_MODE "Are you going to develop applications for Android?"
+    confirm J_MODE "Are you going to develop programs in Java?"
+    confirm S_MODE "Are you going to develop programs in C#?"
+    confirm E_MODE "Are you going to program microcontrollers?"
+    confirm I_MODE "Do you want to use a tiling window manager?"
+    echo "Very well. We're gone through it and ready to move on!"
+fi
+
+echo
+echo "Since you ran me as root, I need to know your real username in the system."
+read -p "Tell me your login, please: " USERNAME
+
+if [[ ! -d "/home/$USERNAME" ]]; then
+    echo "I'm sorry, but I couldn't find your home directory."
+    exit
+fi
+
+AUTOSTART_DIR="/home/$USERNAME/.config/autostart"
+
+
+initialization
+install_drivers
+install_basic_software
+
+call_if G_MODE install_gaming_software
+call_if C_MODE install_cloud_software
+call_if N_MODE install_network_software
+call_if T_MODE install_anonymous_software
+call_if V_MODE install_virtualization_software
+call_if W_MODE install_webdev_software
+call_if P_MODE install_pydev_software
+call_if A_MODE install_androiddev_software
+call_if J_MODE install_javadev_software
+call_if S_MODE install_csharpdev_software
+call_if E_MODE install_embeddeddev_software
+call_if I_MODE install_i3wm
+
+update-command-not-found
+
+# Cleans up all temporary files.
+rm -rf "$DOWNLOAD_DIR"
+
+# Removes the installation directory if it's empty.
+# Otherwise, let's ensure that its content is owned by the user.
+if [[ -z $(ls -A "$INSTALLATION_DIR") ]]; then
+    rmdir "$INSTALLATION_DIR"
+else
+    chown -R "$USERNAME:$USERNAME" "$INSTALLATION_DIR"
+fi
+
+# Eliminates duplicate lines if they are.
+cat "$APT_SOURCE_FILE" | sort -u | sed '/^$/d' > "$APT_SOURCE_FILE.tmp"
+mv "$APT_SOURCE_FILE.tmp" "$APT_SOURCE_FILE"
+
+
+echo
+echo "Congratulations! All software are installed and ready to use!"
+echo
+echo "Now I would recommend you to execute the following command and fullfil all its requests:"
+echo -e "\tsu -c 'winetricks vcrun2010'"
+echo "By default, it will offer you to save a distributive to /root/Downloads."
+echo "Thus, you should terminate the current command with Ctrl+C and execute the following command after downloading:"
+echo -e "\tsu -c 'mv /root/Downloads/msxml3.msi /root/.cache/winetricks/msxml3/msxml3.msi'"
+echo 'And then just repeat the previous "winetricks" command again.'
+
+# When we're installing the set for gamers, we cannot to run sgfxi because it must be run out of display mode. So let's give our user instructions what to do.
+if [[ "$G_MODE" == true ]]; then
+    echo
+    echo "Also, you have to install or upgrade video card drivers by yourself. But don't worry! I've installed some program to help you with it.'"
+    echo 'Just press Ctr+Alt+F1, execute "sgfxi" command, follow its instructions and get back with either its help or using Alt+F7!'
+fi
+
+if [[ "$N_MODE" == true ]]; then
+    echo
+    echo "I've installed a small program to provide you more comfortable way to share and hide folders in the local network."
+    echo "Just type the following command to see what it can do:"
+    echo -e "\tksharman -h"
+    echo "Also, I've created another small program to give you an easy way to mount remote folders to the local filesystem."
+    echo "Please, examine the output of the following command and create a correct ~/.remotehosts file!"
+    echo -e "\tkremount -h"
+fi
+
+if [[ "$OFFER_JDK_INSTALLATION" == true ]]; then
+    apt-get install -y default-jdk
+    fetch_dist jdk-install "http://nekochan.ru/linux/jdk-install"
+    mv jdk-install "$BIN_DIR/jdk-install"
+    chmod +x "$BIN_DIR/jdk-install"
+    echo
+    echo "Since you've installed some Java based software, it may be necessary to install a proprietary JDK by Oracle."
+    echo "If you encounter any problems with OpenJDK, execute this command and follow its instructions:"
+    echo -e "\tjdk-install"
+fi
+
+echo
+echo "That's almost all! The last thing is left to do: reboot your computer to apply new drivers, sudo settings and so on."
+echo "Also, there is my own set of configuration files on GitHub. You may with to take a look at them:"
+echo -e "\thttps://github.com/kozalosev/dotfiles"
+echo
+
+############################

@@ -1,0 +1,200 @@
+#!/bin/bash
+
+###########################
+######  "CONSTANTS"  ######
+###########################
+
+DOWNLOAD_DIR=/tmp/KozConfigurator         # Temporary folder for distributives and archives.
+INSTALLATION_DIR=/opt/KozConfigurator     # Big programs will be moved here.
+BIN_DIR=/usr/local/bin                    # Small programs will be moved here, and symlinks will be created here to big ones.
+SHORTCUT_DIR=/usr/share/applications      # Here will be created .desktop files for some programs.
+
+HELP_MESSAGE="
+########################################################
+#################  kjbupdater v0.1.0  ##################
+###  This script is a part of KozConfigurator v0.4.0 ###
+########################################################
+#########  Leonid Kozarin <kozalo@nekochan.ru  #########
+#########  License: MIT                        #########
+#########  (c) Copyright Kozalo.Ru, 2018       #########
+########################################################
+
+Installation script for products of JetBrains. Use it to install or update their
+awesome IDEs!
+
+Basic usage:
+    kjbupdater <name of program*> <code of distributive**> [categories for .desktop files***]
+
+    * Actually, it MUST be the same as an executable file! For IntelliJ IDEA,
+    for example, it can be 'IDEA', 'Idea', 'idea', but not 'IntelliJ IDEA'.
+    ** JetBrains uses a convenient downloading system to get links for the
+    latest software using a special code for every product. See
+    https://jetbrains.com for them.
+    *** 'Development;IDE;' by default.
+
+Shortcuts:
+    The script has some IDE names and codes predefined:
+        - clion
+        - idea
+        - idea-community
+        - pycharm
+        - pycharm-community
+        - rubymine
+        - phpstorm
+        - webstorm
+        - datagrip
+
+    So, you may just type, for example:
+        kjbupdater -n idea
+
+Deletion:
+    kjbupdater -d <name of program>
+
+Pitfalls:
+    It's not possible to use this script for managing different installations of
+    one type of IDE. By type I mean different editions of IDE for one
+    programming laguage. Thus, you cannot install both IntelliJ IDEA Ultimate
+    and IntelliJ IDEA Community Edition.
+"
+
+
+################################
+######  HELPER FUNCTIONS  ######
+################################
+
+# Downloads a file to the special folder we discussed above and changes the working directory to this folder.
+# Usage: fetch_dist <name for the file> <link>
+# Depends on: $DOWNLOAD_DIR.
+function fetch_dist {
+    mkdir -p "$DOWNLOAD_DIR/$1"
+    cd "$DOWNLOAD_DIR/$1"
+    wget -O "$1" "$2"
+}
+
+# Creates a .desktop file to let the user run programs via the desktop environment.
+# Usage: make_shortcut <path or name of executable file> <name of program> <category (-ies) of program> [path to icon*]
+# * If it's not set, "applications-other" is used instead.
+# Depends on: $SHORTCUT_DIR.
+function make_shortcut {
+    if [[ -n "$4" ]]; then
+        local ICON_PATH="$4"
+    else
+        local ICON_PATH="applications-other"
+    fi
+
+    local DESKTOP_FILE="
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Terminal=false
+Categories=$3
+Exec=$1
+Name=$2
+Icon=$ICON_PATH
+"
+
+    echo "$DESKTOP_FILE" | sudo tee "$SHORTCUT_DIR/$2.desktop" > /dev/null
+}
+
+# Used to let the user change the list of software interactively.
+# Usage: confirm <name of variable> <message>
+function confirm {
+    read -p "$2" mode
+    case "$mode" in
+        [Yy]* ) eval $1=true;;
+        [Nn]* ) eval $1=false;;
+        *) echo "Skipped! It's still set to ${!1}."
+    esac
+}
+
+
+# As the name of this function says, it's used to check if some program installed or not.
+# Usage: check_not_installed <program>
+# Returns:
+#   0 (true)  - if a checked program is not installed yet;
+#   1 (false) - if the program is already installed.
+function check_not_installed {
+    if hash "$1" 2>/dev/null; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+function uninstall_jetbrains_ide {
+    local LINK=$(which "$1")
+    local APP=$(readlink "$LINK")
+    local DIR=$(dirname "$APP")
+
+    if [[ $(dirname "$DIR") != "$INSTALLATION_DIR" ]]; then
+        echo "Installation directory test failed!"
+        return 1
+    fi
+
+    rm -rf "$DIR"
+    rm -f "$SHORTCUT_DIR/$1.desktop" "$LINK"
+    rm "$LINK"
+
+    return 0
+}
+
+# Used to install all programs made by JetBrains with only one line of code.
+# Usage: install_jetbrains_ide <name of program*> <code of distributive**> <categories for .desktop files>
+# * Actually, it MUST be the same as an executable file! For IntelliJ IDEA, for example, it can be "IDEA", "Idea", "idea", but not "IntelliJ IDEA".
+# ** JetBrains uses a convenient downloading system to get links for the latest software using a special code for every product. See https://jetbrains.com for them.
+# Depends on: fetch_dist, make_shortcut, check_not_installed, $INSTALLATION_DIR, $BIN_DIR.
+function install_jetbrains_ide {
+    local BIN_NAME=$(echo "$1" | awk '{print tolower($0)}')
+    local EXEC_FILENAME="$BIN_NAME.sh"
+
+    if ! check_not_installed "$BIN_NAME"; then
+        UPDATE_CONFIRMATION=true
+        confirm UPDATE_CONFIRMATION "This program is already installed. Do you want to update it? (Y/n)"
+        
+        if [[ "$UPDATE_CONFIRMATION" == true ]]; then
+            if ! uninstall_jetbrains_ide "$BIN_NAME"; then
+                return 2
+            fi
+        else
+            return 1
+        fi
+    fi
+
+    fetch_dist "$1" "http://data.services.jetbrains.com/products/download?code=$2&platform=linux"
+    tar -zxvf "$1"
+    rm "$1"
+    local DIRNAME=$(ls)
+    mkdir -p "$INSTALLATION_DIR/$BIN_NAME"
+    rm -rf "$INSTALLATION_DIR/$BIN_NAME/*"
+    mv "$DIRNAME"/* "$INSTALLATION_DIR/$BIN_NAME/"
+    rmdir "$DIRNAME"
+
+    sudo ln -sf "$INSTALLATION_DIR/$BIN_NAME/bin/$EXEC_FILENAME" "$BIN_DIR/$BIN_NAME"
+    make_shortcut "$BIN_NAME" "$1" "${3:-'Development;IDE;'}" "$INSTALLATION_DIR/$BIN_NAME/bin/$BIN_NAME.png"
+}
+
+
+############################
+######  MAIN SECTION  ######
+############################
+
+if [[ ("$1" == *delete || "$1" == "-d") && -n "$2" ]]; then
+    uninstall_jetbrains_ide "$2"
+elif [[ ("$1" == *name || "$1" == "-n") && -n "$2" ]]; then
+    NAME=$(echo "$2" | awk '{print tolower($0)}')
+    case "$NAME" in
+        clion) install_jetbrains_ide clion CL;;
+        idea) install_jetbrains_ide idea IIU;;
+        idea-community) install_jetbrains_ide idea IIC;;
+        pycharm) install_jetbrains_ide pycharm PCP;;
+        pycharm-community) install_jetbrains_ide pycharm PCC;;
+        rubymine) install_jetbrains_ide rubymine RM;;
+        phpstorm) install_jetbrains_ide phpstorm PS;;
+        webstorm) install_jetbrains_ide webstorm WS;;
+        datagrip) install_jetbrains_ide datagrip DG 'Development;';;
+    esac
+elif [[ -n "$2" ]]; then
+    install_jetbrains_ide "$1" "$2" "$3"
+else
+    echo "$HELP_MESSAGE"
+fi

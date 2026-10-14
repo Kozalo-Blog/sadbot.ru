@@ -1,0 +1,941 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>@font-face {
+  font-family: octicons-anchor;
+  src: url(data:font/woff;charset=utf-8;base64,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) format('woff');
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    width: 980px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+body .markdown-body {
+    padding: 45px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    word-wrap: break-word;
+}
+
+pre {
+    font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+.markdown-body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  color: #333;
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.markdown-body a {
+  background-color: transparent;
+}
+
+.markdown-body a:active,
+.markdown-body a:hover {
+  outline: 0;
+}
+
+.markdown-body strong {
+  font-weight: bold;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+.markdown-body img {
+  border: 0;
+}
+
+.markdown-body hr {
+  box-sizing: content-box;
+  height: 0;
+}
+
+.markdown-body pre {
+  overflow: auto;
+}
+
+.markdown-body code,
+.markdown-body kbd,
+.markdown-body pre {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+
+.markdown-body input {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+
+.markdown-body html input[disabled] {
+  cursor: default;
+}
+
+.markdown-body input {
+  line-height: normal;
+}
+
+.markdown-body input[type="checkbox"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.markdown-body td,
+.markdown-body th {
+  padding: 0;
+}
+
+.markdown-body input {
+  font: 13px / 1.4 Helvetica, arial, nimbussansl, liberationsans, freesans, clean, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.markdown-body a {
+  color: #4078c0;
+  text-decoration: none;
+}
+
+.markdown-body a:hover,
+.markdown-body a:active {
+  text-decoration: underline;
+}
+
+.markdown-body hr {
+  height: 0;
+  margin: 15px 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.markdown-body hr:before {
+  display: table;
+  content: "";
+}
+
+.markdown-body hr:after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 1.1;
+}
+
+.markdown-body h1 {
+  font-size: 30px;
+}
+
+.markdown-body h2 {
+  font-size: 21px;
+}
+
+.markdown-body h3 {
+  font-size: 16px;
+}
+
+.markdown-body h4 {
+  font-size: 14px;
+}
+
+.markdown-body h5 {
+  font-size: 12px;
+}
+
+.markdown-body h6 {
+  font-size: 11px;
+}
+
+.markdown-body blockquote {
+  margin: 0;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body ol ol,
+.markdown-body ul ol {
+  list-style-type: lower-roman;
+}
+
+.markdown-body ul ul ol,
+.markdown-body ul ol ol,
+.markdown-body ol ul ol,
+.markdown-body ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+.markdown-body dd {
+  margin-left: 0;
+}
+
+.markdown-body code {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+}
+
+.markdown-body pre {
+  margin-top: 0;
+  margin-bottom: 0;
+  font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+.markdown-body .select::-ms-expand {
+  opacity: 0;
+}
+
+.markdown-body .octicon {
+  font: normal normal normal 16px/1 octicons-anchor;
+  display: inline-block;
+  text-decoration: none;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.markdown-body .octicon-link:before {
+  content: '\f05c';
+}
+
+.markdown-body:before {
+  display: table;
+  content: "";
+}
+
+.markdown-body:after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+.markdown-body>*:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-body a:not([href]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.markdown-body .anchor {
+  display: inline-block;
+  padding-right: 2px;
+  margin-left: -18px;
+}
+
+.markdown-body .anchor:focus {
+  outline: none;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 1em;
+  margin-bottom: 16px;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
+.markdown-body h1 .octicon-link,
+.markdown-body h2 .octicon-link,
+.markdown-body h3 .octicon-link,
+.markdown-body h4 .octicon-link,
+.markdown-body h5 .octicon-link,
+.markdown-body h6 .octicon-link {
+  color: #000;
+  vertical-align: middle;
+  visibility: hidden;
+}
+
+.markdown-body h1:hover .anchor,
+.markdown-body h2:hover .anchor,
+.markdown-body h3:hover .anchor,
+.markdown-body h4:hover .anchor,
+.markdown-body h5:hover .anchor,
+.markdown-body h6:hover .anchor {
+  text-decoration: none;
+}
+
+.markdown-body h1:hover .anchor .octicon-link,
+.markdown-body h2:hover .anchor .octicon-link,
+.markdown-body h3:hover .anchor .octicon-link,
+.markdown-body h4:hover .anchor .octicon-link,
+.markdown-body h5:hover .anchor .octicon-link,
+.markdown-body h6:hover .anchor .octicon-link {
+  visibility: visible;
+}
+
+.markdown-body h1 {
+  padding-bottom: 0.3em;
+  font-size: 2.25em;
+  line-height: 1.2;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h1 .anchor {
+  line-height: 1;
+}
+
+.markdown-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.75em;
+  line-height: 1.225;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h2 .anchor {
+  line-height: 1;
+}
+
+.markdown-body h3 {
+  font-size: 1.5em;
+  line-height: 1.43;
+}
+
+.markdown-body h3 .anchor {
+  line-height: 1.2;
+}
+
+.markdown-body h4 {
+  font-size: 1.25em;
+}
+
+.markdown-body h4 .anchor {
+  line-height: 1.2;
+}
+
+.markdown-body h5 {
+  font-size: 1em;
+}
+
+.markdown-body h5 .anchor {
+  line-height: 1.1;
+}
+
+.markdown-body h6 {
+  font-size: 1em;
+  color: #777;
+}
+
+.markdown-body h6 .anchor {
+  line-height: 1.1;
+}
+
+.markdown-body p,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body dl,
+.markdown-body table,
+.markdown-body pre {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body hr {
+  height: 4px;
+  padding: 0;
+  margin: 16px 0;
+  background-color: #e7e7e7;
+  border: 0 none;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+}
+
+.markdown-body ul ul,
+.markdown-body ul ol,
+.markdown-body ol ol,
+.markdown-body ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body li>p {
+  margin-top: 16px;
+}
+
+.markdown-body dl {
+  padding: 0;
+}
+
+.markdown-body dl dt {
+  padding: 0;
+  margin-top: 16px;
+  font-size: 1em;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.markdown-body dl dd {
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
+.markdown-body blockquote {
+  padding: 0 15px;
+  color: #777;
+  border-left: 4px solid #ddd;
+}
+
+.markdown-body blockquote>:first-child {
+  margin-top: 0;
+}
+
+.markdown-body blockquote>:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  word-break: normal;
+  word-break: keep-all;
+}
+
+.markdown-body table th {
+  font-weight: bold;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid #ddd;
+}
+
+.markdown-body table tr {
+  background-color: #fff;
+  border-top: 1px solid #ccc;
+}
+
+.markdown-body table tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}
+
+.markdown-body img {
+  max-width: 100%;
+  box-sizing: content-box;
+  background-color: #fff;
+}
+
+.markdown-body code {
+  padding: 0;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+}
+
+.markdown-body code:before,
+.markdown-body code:after {
+  letter-spacing: -0.2em;
+  content: "\00a0";
+}
+
+.markdown-body pre>code {
+  padding: 0;
+  margin: 0;
+  font-size: 100%;
+  word-break: normal;
+  white-space: pre;
+  background: transparent;
+  border: 0;
+}
+
+.markdown-body .highlight {
+  margin-bottom: 16px;
+}
+
+.markdown-body .highlight pre,
+.markdown-body pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f7f7f7;
+  border-radius: 3px;
+}
+
+.markdown-body .highlight pre {
+  margin-bottom: 0;
+  word-break: normal;
+}
+
+.markdown-body pre {
+  word-wrap: normal;
+}
+
+.markdown-body pre code {
+  display: inline;
+  max-width: initial;
+  padding: 0;
+  margin: 0;
+  overflow: initial;
+  line-height: inherit;
+  word-wrap: normal;
+  background-color: transparent;
+  border: 0;
+}
+
+.markdown-body pre code:before,
+.markdown-body pre code:after {
+  content: normal;
+}
+
+.markdown-body kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 10px;
+  color: #555;
+  vertical-align: middle;
+  background-color: #fcfcfc;
+  border: solid 1px #ccc;
+  border-bottom-color: #bbb;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #bbb;
+}
+
+.markdown-body .pl-c {
+  color: #969896;
+}
+
+.markdown-body .pl-c1,
+.markdown-body .pl-s .pl-v {
+  color: #0086b3;
+}
+
+.markdown-body .pl-e,
+.markdown-body .pl-en {
+  color: #795da3;
+}
+
+.markdown-body .pl-s .pl-s1,
+.markdown-body .pl-smi {
+  color: #333;
+}
+
+.markdown-body .pl-ent {
+  color: #63a35c;
+}
+
+.markdown-body .pl-k {
+  color: #a71d5d;
+}
+
+.markdown-body .pl-pds,
+.markdown-body .pl-s,
+.markdown-body .pl-s .pl-pse .pl-s1,
+.markdown-body .pl-sr,
+.markdown-body .pl-sr .pl-cce,
+.markdown-body .pl-sr .pl-sra,
+.markdown-body .pl-sr .pl-sre {
+  color: #183691;
+}
+
+.markdown-body .pl-v {
+  color: #ed6a43;
+}
+
+.markdown-body .pl-id {
+  color: #b52a1d;
+}
+
+.markdown-body .pl-ii {
+  background-color: #b52a1d;
+  color: #f8f8f8;
+}
+
+.markdown-body .pl-sr .pl-cce {
+  color: #63a35c;
+  font-weight: bold;
+}
+
+.markdown-body .pl-ml {
+  color: #693a17;
+}
+
+.markdown-body .pl-mh,
+.markdown-body .pl-mh .pl-en,
+.markdown-body .pl-ms {
+  color: #1d3e81;
+  font-weight: bold;
+}
+
+.markdown-body .pl-mq {
+  color: #008080;
+}
+
+.markdown-body .pl-mi {
+  color: #333;
+  font-style: italic;
+}
+
+.markdown-body .pl-mb {
+  color: #333;
+  font-weight: bold;
+}
+
+.markdown-body .pl-md {
+  background-color: #ffecec;
+  color: #bd2c00;
+}
+
+.markdown-body .pl-mi1 {
+  background-color: #eaffea;
+  color: #55a532;
+}
+
+.markdown-body .pl-mdr {
+  color: #795da3;
+  font-weight: bold;
+}
+
+.markdown-body .pl-mo {
+  color: #1d3e81;
+}
+
+.markdown-body kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  line-height: 10px;
+  color: #555;
+  vertical-align: middle;
+  background-color: #fcfcfc;
+  border: solid 1px #ccc;
+  border-bottom-color: #bbb;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #bbb;
+}
+
+.markdown-body .plan-price-unit {
+  color: #767676;
+  font-weight: normal;
+}
+
+.markdown-body .task-list-item {
+  list-style-type: none;
+}
+
+.markdown-body .task-list-item+.task-list-item {
+  margin-top: 3px;
+}
+
+.markdown-body .task-list-item input {
+  margin: 0 0.35em 0.25em -1.6em;
+  vertical-align: middle;
+}
+
+.markdown-body .plan-choice {
+  padding: 15px;
+  padding-left: 40px;
+  display: block;
+  border: 1px solid #e0e0e0;
+  position: relative;
+  font-weight: normal;
+  background-color: #fafafa;
+}
+
+.markdown-body .plan-choice.open {
+  background-color: #fff;
+}
+
+.markdown-body .plan-choice.open .plan-choice-seat-breakdown {
+  display: block;
+}
+
+.markdown-body .plan-choice-free {
+  border-radius: 3px 3px 0 0;
+}
+
+.markdown-body .plan-choice-paid {
+  border-radius: 0 0 3px 3px;
+  border-top: 0;
+  margin-bottom: 20px;
+}
+
+.markdown-body .plan-choice-radio {
+  position: absolute;
+  left: 15px;
+  top: 18px;
+}
+
+.markdown-body .plan-choice-exp {
+  color: #999;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.markdown-body .plan-choice-seat-breakdown {
+  margin-top: 10px;
+  display: none;
+}
+
+.markdown-body :checked+.radio-label {
+  z-index: 1;
+  position: relative;
+  border-color: #4078c0;
+}
+</style><title>README</title></head><body><article class="markdown-body"><h1>
+<a id="user-content-kozmul" class="anchor" href="#kozmul" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>KozMUL</h1>
+
+<h2>
+<a id="user-content-kozalos-mark-up-language" class="anchor" href="#kozalos-mark-up-language" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Kozalo's Mark-Up Language</h2>
+
+<p>Repository: https://Kozalo@bitbucket.org/Kozalo/kozmul.git<br>
+Bug tracker: <a href="https://bitbucket.org/Kozalo/kozmul/issues">https://bitbucket.org/Kozalo/kozmul/issues</a>  </p>
+
+<h3>
+<a id="user-content-Для-русскоязычных-людей" class="anchor" href="#%D0%94%D0%BB%D1%8F-%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D1%8F%D0%B7%D1%8B%D1%87%D0%BD%D1%8B%D1%85-%D0%BB%D1%8E%D0%B4%D0%B5%D0%B9" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Для русскоязычных людей</h3>
+
+<p>Подробное руководство на русском языке можно прочитать на <a href="http://nekochan.ru/KozMUL/manual/ru/">моём сайте</a>.  </p>
+
+<h3>
+<a id="user-content-introduction" class="anchor" href="#introduction" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Introduction</h3>
+
+<p>Hello, colleague! Let me introduce you my own mark-up language -- KozMUL! It's similar to Markdown but has more features, and its syntax is a bit prettier (for me, of course ;) ).<br>
+In this short tutorial, I'd like to consider all main features of KozMUL as quickly as possible.<br>
+Actually, the library mostly is just a set of several regular expressions and some more complex (and, probably, stupid) functions.</p>
+
+<h3>
+<a id="user-content-how-to-use-the-library" class="anchor" href="#how-to-use-the-library" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How to use the library</h3>
+
+<ol>
+<li>Firstly, you must include KozMUL.js and the set of libraries named KozUtils to your HTML file.<br>
+</li>
+</ol>
+
+<pre><code>&lt;script src="http://libs.nekochan.ru/KozUtils-AIO.js"&gt;&lt;/script&gt;  
+&lt;script src="http://libs.nekochan.ru/KozMUL.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<ol>
+<li>KozMUL.js has only one class: KozMUL. Let's create an instance of it!<br>
+</li>
+</ol>
+
+<pre><code>let textProcessor = new KozMUL({  
+    transformHTMLEntities: true,  
+    transformBasicStyleTags: true,  
+    transformTypographicalCharacters: true,  
+    transformSubscriptAndSuperscriptTags: true,  
+    transformParagraphs: true,  
+    transformLists: true,  
+    transformQuotations: true,  
+    transformHorizontalLines: false,  
+    transformHeadings: false,  
+    transformLinks: false,  
+    transformImages: false,  
+    transformTables: false,  
+    transformCodeTags: false,  
+    transformSubstitutions: false  
+}, {  
+    targetBlank: false,  
+    tableClasses: ['table', 'table-bordered'],  
+    listsWithIndentations: true  
+});
+</code></pre>
+
+<p>In the example above all possible options are demonstrated. Both objects are optional. If you call the constructor without any parameters, you get exactly the same instance. So, you're in charge to reassign any parameters against their default values.<br>
+OK, the first object in the argument list is called <em>operations</em> and consists of all transformations that will be applied to text. The second one is called <em>options</em> and contains parameters for some of operations. We're talk about it more later on.<br>
+3. The last thing we need to do to covert out KozMUL <em>text</em> to HTML code is call <code>textProcessor.toHTML(text)</code>. That's all! Pretty simple, isn't it?</p>
+
+<h3>
+<a id="user-content-and-what-about-the-language-itself" class="anchor" href="#and-what-about-the-language-itself" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>And what about the language itself?</h3>
+
+<p>Oh, it's a good time to speak about <s>God</s> the syntax of KozMUL!<br>
+Look at the list below! I'll trying to explain you the basics of the usage of KozMUL. In parentheses at the beginning of every string, corresponding <em>operation</em> without "transform" prefix is written.</p>
+
+<ul>
+<li>(BasicStyleTags) You can use **<strong>bold</strong>**, __<em>italic</em>__, <del><s>strikethrough</s></del> text.</li>
+<li>(TypographicalCharacters) KozMUL has support for some typographical characters: — (<code>--</code>), «» (<code>&lt;&lt;&gt;&gt;</code>), © (<code>(c)</code>), ® (<code>(r)</code>), ™ (<code>(tm)</code>).</li>
+<li>(HTMLEntities) All HTML tags, quotes and ampersands will be escaped automatically: <code>&lt;b&gt; =&gt; &amp;lt;b&amp;gt;</code>, <code>" =&gt; &amp;quot;</code>, <code>&amp; =&gt; &amp;amp;</code>.</li>
+<li>(SubscriptAndSuperscriptTags) To write a formula, use this syntax: <code>x.{1}=2^{2}=4</code> =&gt; x<sub>1</sub>=2<sup>2</sup>=4</li>
+<li>(Links) To create a link you should write something like these two: <code>@[[http://kozalo.ru]]</code> =&gt; <a href="http://kozalo.ru">http://kozalo.ru</a>, <code>@[Meow!][http://nekochan.ru]</code> =&gt; <a href="http://nekochan.ru">Meow!</a><br>
+Note that there is the option called <em>targetBlank</em>. If it's set, all links will be processed with the <code>target=_blank</code> attribute.</li>
+<li>(Images) Syntax for images is very similar (I won't give you a working example, okay?): <code>![[http://nekochan.ru/images/head_of_nekochan.png]]</code>, <code>![Logo][http://kozalo.ru/images/service/logo.png]</code>, or even <code>@![[http://nekochan.ru/images/im_nekochan_vaper.jpg]]</code>.<br>
+The reader can ask me: "What's the difference between them?" And I'll answer! The first example will be processed as just an image, the second one, on contrary, will be an image with the <em>alt</em> tag, and, finally, the last will be an image wrapped with a link to it!</li>
+<li>(Quotations) <code>&gt; Liberty or Death</code>. Yes, just like in Markdown.</li>
+<li>(CodeTags) Like in Markdown again. Two back quotes (<code>) for wrapping with the</code><code>&lt;code&gt;</code><code>tag and three back quotes for the</code><code>&lt;pre&gt;</code>` tag.</li>
+<li>(HorizontalLines) How can you write <code>&lt;hr&gt;</code>? It's very easy! Just write 6 hyphens (-) / 3 dashes or more in a line without any other symbols (yeah, Markdown again and again).</li>
+<li>(Substitutions) I think the reader is smart enough to realize how to use substitutions in KozMUL using only an example, huh?<br>
+<code>{{s=ubstitution}} S{{s}}, s{{s}}, s{{s}}s...</code> =&gt; <code>Substitution, substitution, substitutions...</code>
+</li>
+<li>(Paragraphs) If the operation is enabled, the library tries to divide text to paragraphs. I spent a long time in attempts to make it work correctly in most cases, and I hope it actually works properly. But I cannot always guarantee you valid code. Sorry. :(  If you have enough experience and desire to improve my simple dumb algorithms, welcome!</li>
+</ul>
+
+<p>OK, guys, we're almost done. We have just 4 features left to cover the whole library. I want to tell about them separately.</p>
+
+<h4>
+<a id="user-content-headings" class="anchor" href="#headings" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Headings</h4>
+
+<p>If Markdown supports 6 headings, KozMUL supports only 3. By default they are <code>&lt;h3&gt;</code>, <code>&lt;h4&gt;</code> and <code>&lt;h5&gt;</code>. I urge you to use KozMUL as an additional language, not for a whole HTML page. So, <code>&lt;h1&gt;</code> and <code>&lt;h2&gt;</code> should be set by usual HTML code.<br>
+But actually you can use the <em>mostImportantHeading</em> parameter of the constructor to change the reference point and start with, for example, <code>&lt;h2&gt;</code>.  </p>
+
+<pre><code>== Heading 1 ==
+
+
+$$ Heading 2
+
+Lorem ipsum...
+</code></pre>
+
+<p>To use <code>&lt;h3&gt;</code>, you must type two equal signs (==), title, and equal signs again (optional). To use <code>&lt;h4&gt;</code>, you must type two dollar signs ($$), title, and dollar signs again (optional).  To use <code>&lt;h5&gt;</code>, use two percent signs (%%).<br>
+Also, don't forget about blank lines before and after a heading!  </p>
+
+<h4>
+<a id="user-content-lists" class="anchor" href="#lists" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Lists</h4>
+
+<p>It's one of the most complex part of the library and the language. Let's start with symbols. I don't like the way which Markdown uses. Therefore, I use a plus sign (+) for unordered lists and a number sign (#) for ordered lists. They just determine the type of a list. In usage they both are equal.<br>
+OK, we're done here. Let's move forward! There are two variants of syntax for lists:
+1. The first one (it's used by default) uses indentations. Look at the example:</p>
+
+<pre><code># First line.
+# Second line.
+ + 2.1;
+ + 2.2;
+ + 2.3;
+# Third line.
+#
+</code></pre>
+
+<p>Pretty simple, huh? I think only the last line needs an explanation. Since items of a list can consists of many lines, the library needs some help to determine the end of the list. The blank item at the end of the list plays this role! Strictly speaking, there is a way to get rid of it. Just add indentations to all lines again!  </p>
+
+<pre><code> # First line.
+ # Second line.
+  + 2.1;
+  + 2.2;
+  + 2.3;
+ # Third line.
+</code></pre>
+
+<p>In this case, the parser will be able to determine the end of the list by itself without any additional help!<br>
+2. The second variant to create a list uses combinations of pluses or number signs. Here's the example:  </p>
+
+<pre><code># First line.  
+# Second line.
++++ 2.1;
++ 2.2;
+++ 2.3;
+# Third line.
+#
+</code></pre>
+
+<p>Brr! Looks ugly, doesn't it? Except one sign, we can use:
+    1. Two pluses or number signs (++ or ##) to close the list. The line 2.3 closes a whole sublist using this syntax. But the way with a blank item works here too.
+    2. Three pluses or number signs (+++ or ###) to open a new list or sublist. Due to its verbosity, usually this syntax is used only for sublists (the library can detect the beginning of a list by only one sign).
+I think this syntax can be useful when you have lots of sublists with many items. In this case the necessity of indentations will be pretty tedious.  </p>
+
+<p>We went through it!</p>
+
+<h4>
+<a id="user-content-tables" class="anchor" href="#tables" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tables</h4>
+
+<p>Currently, the library just translates <code>[table]</code>, <code>[row]</code>, <code>[cell]</code>, and <code>[header]</code> tags to their HTML equivalents: <code>&lt;table&gt;</code>, <code>&lt;tr&gt;</code>, <code>&lt;td&gt;</code>, and <code>&lt;th&gt;</code>. Thus, you have to write a lot of reduntant code. Let's look at this complex example:  </p>
+
+<pre><code>[table]
+    [row]
+        [cell]dfdfdf[/cell]
+        [cell]fdfdfdfdfd[/cell]
+        [cell]
+            [table]
+                [row]
+                    [cell]dfdffd[/cell]
+                [/row]
+                [row]
+                    [cell]fdfdfd[/cell]
+                [/row]
+            [/table]
+        [/cell]
+    [/row]
+    [row]
+        [cell]dfdfdf[/cell]
+        [cell]fdfdfdfdfd[/cell]
+    [/row]
+[/table]
+</code></pre>
+
+<p>FUUUUUUUUUUUUU!!1<br>
+What if I tell you that somewhen we'll be able to rewrite it to following:  </p>
+
+<pre><code>[row]  
+    [cell]dfdfdf[/cell]  
+    [cell]fdfdfdfdfd[/cell]  
+    [cell]
+        [row]dfdffd[/row]
+        [row]fdfdfd[/row]
+    [/cell]
+[/row]
+[row]
+    [cell]dfdfdf[/cell]
+    [cell]fdfdfdfdfd[/cell]
+[/row]
+</code></pre>
+
+<p>Better? Much better!<br>
+I'm going to work on implementation a new table parser. It will take texts with simplified tables, build trees, repaire the structure of tables, and return the correct HTML tables. But it's a question of time.<br>
+Currently, table syntax in KozMUL is pretty simple. Even primitive, I would say.  </p>
+
+<h3>
+<a id="user-content-conclusion" class="anchor" href="#conclusion" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Conclusion</h3>
+
+<p>OK, I think we've covered all aspects of KozMUL and reached the end of the manual. I hope you'll find this library as useful as I do.<br>
+Also, I'm always glad if someone wants to contribute a piece of code to make the library better. If you want to donate some money instead, let me know via <a href="mailto:kozalo@yandex.ru">email</a> or <a href="http://kozalo.ru">my website</a>.</p>
+</article>
+
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-27525198-5', 'auto');
+    ga('send', 'pageview');
+</script>
+
+</body></html>

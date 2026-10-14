@@ -1,0 +1,25 @@
+# Minimal example: one nginx container serving these sites behind nginx-proxy + acme-companion
+# (https://github.com/nginx-proxy), which route the hostnames and issue the TLS certificates.
+# Run from this directory: docker compose up -d
+services:
+  sadbot-ru-static:
+    image: nginx:stable-alpine
+    container_name: sadbot-ru-static
+    restart: unless-stopped
+    environment:
+      - VIRTUAL_HOST=sadbot.ru,www.sadbot.ru,cbt.sadbot.ru,comics.sadbot.ru,files.sadbot.ru,lib.sadbot.ru,libs.sadbot.ru,kozmul.sadbot.ru,nekochan.sadbot.ru
+      - LETSENCRYPT_HOST=sadbot.ru,www.sadbot.ru,cbt.sadbot.ru,comics.sadbot.ru,files.sadbot.ru,lib.sadbot.ru,libs.sadbot.ru,kozmul.sadbot.ru,nekochan.sadbot.ru
+      - VIRTUAL_PORT=80
+    expose:
+      - 80
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # every site's `root` in nginx.conf is a subdirectory of /srv
+      - ../sites:/srv:ro
+    networks:
+      - nginx-proxy-network
+networks:
+  nginx-proxy-network:
+    # the default network of the nginx-proxy compose project
+    name: nginx-proxy_default
+    external: true

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+HOME_DIR=/home
+LOG=jdk-install-jpkg.log
+
+if [[ -z "$1" || ! -f "$1" ]]; then
+	echo "Please, download a *.tar.gz archive with the last version of JDK from the Oracle website and pass me a path to the file as an agrument."
+	exit
+fi
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Run me as root, please!"
+	exit
+fi
+
+read -p "Tell me your login in the system to install JDK properly: " USERNAME
+if [[ -z $(ls "$HOME_DIR" | grep -w "$USERNAME") ]]; then
+	echo "I couldn't find your home directory. Sorry."
+	exit
+fi
+
+aptitude install -y java-package
+
+ARCHIVE=$(basename "$1")
+WORKINGDIR=$(dirname "$1")
+cd "$WORKINGDIR"
+
+su -c "make-jpkg $ARCHIVE" "$USERNAME" | tee "$LOG"
+PACKAGE_NAME=$(cat "$LOG" | grep "dpkg -i" | grep -o  "oracle-java\S\+")
+
+dpkg -i "$PACKAGE_NAME"
+
+echo
+echo "Now you should choose Oracle Java as the default JRE, not OpenJDK!"
+echo
+update-alternatives --config java
+
+rm "$ARCHIVE" "$PACKAGE_NAME" "$LOG"

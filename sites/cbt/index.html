@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta name="description" content="Тест на цветоощущение по таблицам Рабкина" />
+	<meta name="keywords" content="kozalo, дальтонизм, цветоощущение, Рабкин" />
+	<link rel="stylesheet" href="incl/main.css" />
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+	<script src="https://malsup.github.io/min/jquery.cycle2.min.js"></script>
+	<script src="incl/answers.js"></script>
+	<script src="incl/main.js"></script>
+	<title>Тест на дальтонизм | Kozalo's Experiment</title>
+</head>
+
+<body>
+<header>
+	<figure id="logo-fig">
+		<a href="https://kozalo.ru"><img id="logo" src="pics/logo.png" alt="Логотип" title="© Л.А. Козарин, 2014 Сайт&nbsp;работает на jQuery"></a>
+		<figcaption><p>Добро пожаловать! На этом сайте Вы можете проверить своё цветоощущение.<br>Оценка с монитора не совсем объективна, но какое-то представление о таблицах Рабкина получить можно.<br>Сайт может пригодиться и для заучивания этих таблиц наизусть.</p>
+		<p>Сайт использует плагин <a target="_blank" href="http://jquery.malsup.com/cycle2">Cycle2</a> и <a target="_blank" href="http://viewangle.net/lechenie/proverka/test-na-dal-tonizm.html">сторонние материалы</a>.</p>
+		<p><button>Поехали!</button></p></figcaption>
+	</figure>
+
+	<nav>
+		<figure id="bgc-fig"><figcaption id="bgc-text">Цвет фона:</figcaption>
+			<div id="bgc-slider"></div>
+		</figure>
+
+		<figure id="bigpic-fig"><input type="checkbox" id="bigpic_chkbx">
+		<label for="bigpic_chkbx">Большие изображения</label></figure>
+
+		<figure id="white-fig"><input type="checkbox" id="white_chkbx">
+		<label for="white_chkbx">Белый текст</label></figure>
+	</nav>
+	</header>
+
+	<article>
+		<div id="pics"></div>
+		<button id="send_answer"></button>
+
+		<div id="right_answer"><ul>
+			<li><a href="#ans">Ответ</a></li>
+			<li><a href="#inf">Пояснение</a></li></ul>
+			<div id="ans"><p></p></div>
+			<div id="inf"><p></p></div>
+		</div>
+	</article>
+
+	<div id="congrats" title="Всё!"><p>Поздравляю! Тест закончился. Можете пройти другой (на картинках другого размера) или поделиться ссылкой на этот сайт с друзьями в социальных сетях.</p>
+		<div><a href="http://vk.com/share.php?url=http%3A%2F%2Fcbt.sadbot.ru&amp;description=Зацени+этот+сайт%21+Проверь+своё+цветоощущение%21"><img src="pics/social/vk.png" alt="VK"></a>&nbsp;
+		<a href="https://facebook.com/sharer/sharer.php?u=http%3A%2F%2Fcbt.sadbot.ru"><img src="pics/social/facebook.png" alt="Facebook"></a>&nbsp;
+		<a href="https://twitter.com/share?url=http%3A%2F%2Fcbt.sadbot.ru&amp;text=Зацени+этот+сайт%21+Проверь+своё+цветоощущение%21"><img src="pics/social/twitter.png" alt="Twitter"></a>&nbsp;
+		<a href="https://plus.google.com/share?url=http%3A%2F%2Fcbt.sadbot.ru"><img src="pics/social/google.png" alt="Google Plus"></a></div>
+	</div>
+</body>
+</html>

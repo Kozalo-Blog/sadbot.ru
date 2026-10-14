@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",function(n){let t=new KozMUL({transformHeadings:!0,transformLinks:!0,transformImages:!0,transformTables:!0,transformCodeTags:!0,transformSubstitutions:!0,transformHorizontalLines:!0},{targetBlank:!0,tableClasses:[]});document.getElementById("content").innerHTML=t.toHTML(document.getElementById("source").value)});

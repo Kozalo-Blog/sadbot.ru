@@ -1,0 +1,144 @@
+#!/usr/bin/python
+
+########################################################
+##################  ksharman v0.1.0  ###################
+###  This script is a part of KozConfigurator v0.2.2 ###
+########################################################
+#########  Leonid Kozarin <kozalo@nekochan.ru  #########
+#########  License: MIT                        #########
+#########  (c) Copyright Kozalo.Ru, 2017       #########
+########################################################
+
+import os
+import re
+import json
+import argparse
+import subprocess
+
+SMB_CONF_PATH = "/etc/samba/smb.conf"
+
+
+class SmbConf:
+    """A class for working with very simple Samba configuration files."""
+
+    def __init__(self):
+        self._nodes = {}
+        self._open_node = None
+        self.read()
+
+    def read(self):
+        """Reads the configuration file and stores its values in one of fields of the class."""
+
+        with open(SMB_CONF_PATH, "r") as smb_conf:
+            for line in smb_conf:
+                line = line.strip()
+                section_name = re.match("^\[(.+)\]$", line)
+                option_pair = re.match("^(.+) ?= ?(.*)$", line)
+
+                if option_pair and self._open_node != None:
+                    self._open_node[option_pair.group(1).strip()] = option_pair.group(2).strip()
+                elif line == "" and self._open_node != None:
+                    self._open_node = None
+                elif section_name and self._open_node == None:
+                    new_node = {}
+                    self._nodes[section_name.group(1).strip()] = new_node
+                    self._open_node = new_node
+                else:
+                    print("Wrong structure of the file!")
+                    exit(3)
+
+    def __str__(self):
+        return json.dumps(self._nodes, indent=4)
+
+    def add(self, path, readonly=False, guest=False):
+        """Adds a new folder to the list of shared directories. It takes the following arguments:
+        path -- a path to the folder which must exists;
+        readonly -- if True, the folder will be shared as a read-only directory;
+        guest -- if True, guests will have access to the folder.
+        """
+
+        if not os.path.isdir(path):
+            print("The path does not exist!")
+            exit(4)
+
+        section_name = os.path.basename(path)
+        if section_name.lower() == "global":
+            print("Forbidden name for a folder!")
+            exit(7)
+
+        self._nodes[section_name] = {
+            'path': path,
+            'readonly': 'yes' if readonly else 'no',
+            'guest ok': 'yes' if guest else 'no'
+        }
+
+    def remove(self, section):
+        """Removes the folder from the list of shared directories.
+        As a parameter takes either a path to the folder or just its name.
+        """
+
+        if section not in self._nodes:
+            print("The section does not exist!")
+            exit(6)
+        elif section.lower() == "global":
+            print('Cannot remove the "global" section!')
+            exit(5)
+
+        del self._nodes[section]
+
+    def edit(self, section_name, key, value):
+        """Modifyes the parameter 'key' of the folder 'section_name' to the 'value'."""
+        self._nodes[section_name][key] = value
+
+    def write(self):
+        """Writes the changes to the file."""
+
+        global_section = self._nodes['global']
+        del self._nodes['global']
+
+        with open(SMB_CONF_PATH, "w") as smb_conf:
+            self.__write_section(smb_conf, "global", global_section)
+
+            for section_name, section_pairs in self._nodes.items():
+                self.__write_section(smb_conf, section_name, section_pairs)
+
+    @staticmethod
+    def __write_section(file, section_name, section_pairs):
+        file.write("[%s]\\n" % section_name)
+        for key, value in section_pairs.items():
+            file.write("%s = %s\\n" % (key, value))
+        file.write("\\n")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="This script will help you to share new folders or hide some old ones via Samba.",
+        epilog="(c) Leonid Kozarin <kozalo@nekochan.ru> (Kozalo.Ru, 2017)")
+    parser.add_argument("action", choices=('list', 'share', 'hide'), help="What would you do? Share a folder or hide it?")
+    parser.add_argument("-p", "--path", type=str, help="A path to a folder. If you're going to hide the folder, you may use only its name.")
+    parser.add_argument("-w", "--writable", action="store_true", default=False, help="By default, other users are able to only read your folders.")
+    parser.add_argument("-g", "--guest", action="store_true", default=False, help="Will guests have access to the folder? By default, it's false.")
+    args = parser.parse_args()
+
+    conf = SmbConf()
+
+    if args.action == "list":
+        print(conf)
+        exit()
+
+    if args.path is None:
+        print("Path is a required parameter for any actions except listing!")
+        exit(1)
+
+    name = os.path.basename(args.path)
+
+    if args.action == "share":
+        conf.add(args.path, not args.writable, args.guest)
+    elif args.action == "hide":
+        conf.remove(name)
+    else:
+        print("Undefined action!")
+        exit(2)
+
+    conf.write()
+    subprocess.call("service smbd restart", shell=True)

@@ -1,0 +1,23 @@
+﻿body { color: #555; font-weight: bold; }
+nav { position: absolute; top: 20px; left: 90px; width: 70%; margin: 0 150px;}
+figure { margin: 0; }
+article { text-align: center; opacity: 0; display: none; }
+article img { margin: -15px 44%; }
+article img.artbigimg { margin: -15px 34%; }
+.logotooltip { font-size: 80% !important; color: inherit !important; width: 200px; }
+#logo { position: relative; width: 200px; z-index: 98; }
+#bgc-fig { width: 50%; }
+#bgc-slider { position: relative; left: 130px; width: 297px; height: 12px; }
+#bgc-text { position: relative; top: 17px; left: 40px; }
+#bigpic-fig { position: relative; top: 20px; left: -160px; margin: 0 200px; width: 50%; }
+#white-fig { position: relative; left: 90px; top: -10px; margin: 0 200px; width: 50%; }
+#bigpic-fig label { font-size: 90%; color: #555; }
+#white-fig label { font-size: 90%; color: #555; }
+#logo-fig button { font-size: inherit; color: inherit; background: #EAEAEA; }
+#logo-fig{ text-align: center; margin: 12% 20%; }
+#logo-fig figcapture { position: relative; top: 20%; }
+#pics img { position: relative; z-index: 97 !important; }
+#send_answer { margin-top: 15px; }
+#right_answer { margin: 3% 20%; margin-top: 40px; font-size: 90%; text-align: left; font-weight: normal; }
+#congrats { display: none; font-size: 12pt; font-weight: normal; }
+#congrats div { text-align: center; }

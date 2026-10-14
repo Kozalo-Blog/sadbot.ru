@@ -1,0 +1,133 @@
+#!/usr/bin/python3
+
+########################################################
+##################  kremount v0.1.1  ###################
+###  This script is a part of KozConfigurator v0.2.2 ###
+########################################################
+#########  Leonid Kozarin <kozalo@nekochan.ru  #########
+#########  License: MIT                        #########
+#########  (c) Copyright Kozalo.Ru, 2017       #########
+########################################################
+
+import sys
+import os
+import re
+import subprocess
+
+DEFAULT_CONFIG_FILE = '/etc/kremount/.remotehosts'
+MOUNT_POINT = '/mnt'
+
+
+def read_config(config_file):
+    """Reads a configuration file and returns its values as a dict."""
+
+    hosts = {}
+
+    with open(config_file, 'r') as config:
+        current_host = None
+
+        for line in config:
+            line = line.strip()
+            matches = re.match("(.*)\s*=\s*(.*)", line)
+            if line[0] == "[" and line[-1] == "]":
+                current_host = {}
+                hosts[line[1:-1]] = current_host
+            elif matches and current_host != None:
+                current_host[matches.group(1)] = matches.group(2)
+
+    return hosts
+
+
+def create_temporary_credentials_file(host, credentials):
+    """Writes credentials to a temporary file and returns its path to pass it to the smbclient."""
+	
+    dir_path = "/tmp/kremount"
+    file_path = "%s/.%s" % (dir_path, host)
+
+    if not os.path.isdir(dir_path):
+        os.mkdir(dir_path, 0o700)
+
+    with open(file_path, 'w') as credentials_file:
+        credentials_file.write("username=%s\n" % credentials['username'])
+        credentials_file.write("password=%s\n" % credentials['password'])
+
+    os.chmod(file_path, 0o600)
+    return file_path
+
+
+def get_remote_folders(host, credentials_file):
+    """Uses smbclient to get the list of accessible folders of the host using a given file with credentials."""
+	
+    with open(os.devnull, 'w') as fnull:
+        smbclient_result = subprocess.Popen(('smbclient', '-L', host, '-A', credentials_file), stdout=subprocess.PIPE, stderr=fnull)
+    grep_result = subprocess.check_output(('grep', 'Disk'), stdin=smbclient_result.stdout)
+
+    remote_resources = grep_result.decode("utf-8")
+    folders = []
+
+    for line in remote_resources.splitlines():
+        if "$" in line or line[:2] == "OS" or line == "":
+            continue
+    
+        name = re.match("(.+)Disk", line.lstrip()).group(1)
+        folders.append(name.rstrip())
+
+    return folders
+
+
+def mount_folders(folders, credentials):
+    """Mounts the 'folders' using your 'credentials' to a local disk."""
+	
+    username = credentials['username']
+    password = credentials['password']
+
+    for folder in folders:
+        remote_path = "%s/%s" % (host, folder)
+        local_path = "%s/%s" % (MOUNT_POINT, remote_path)
+
+        if not os.access(MOUNT_POINT, os.W_OK):
+            subprocess.call("sudo setfacl -m 'u:%s:rwx' '%s'" % (username, MOUNT_POINT), shell=True)
+
+        os.makedirs(local_path, 0o700, exist_ok=True)
+        subprocess.call("sudo mount.cifs '//%s' '%s' -o 'user=%s,pass=%s'" % (remote_path, local_path, username, password), shell=True)
+
+
+def print_help_message():
+    """Prints a help message."""
+	
+    print("\nThis script is supposed to help you mount remote folders on other computers within a local network.")
+    print("It works automatically, but you must tell it a list of required hosts and credentials for htem.")
+    print("By default, the script uses the %s file, but you can pass another path as a parameter." % DEFAULT_CONFIG_FILE)
+    print("All remote folders will be mounted to %s." % MOUNT_POINT)
+    print("And don't run the script as root! It won't be able read your credentials and set permissions to you.", end='\n\n')
+    print("Your %s file must adhere to the following syntax:" % DEFAULT_CONFIG_FILE)
+    print("\t[HOSTNAME]")
+    print("\tusername=USERNAME")
+    print("\tpassword=PASSWORD", end='\n\n')
+    print("Note, the script makes assumption that your username in the network is equal to your login in the system.")
+    print("If it's wrong, you shouldn't use the script.", end='\n\n')
+    print("(c) Leonid Kozarin <kozalo@nekochan.ru> (Kozalo.Ru, 2017)", end='\n\n')
+
+
+
+if __name__ == "__main__":
+    if os.path.isfile(DEFAULT_CONFIG_FILE):
+        hosts = read_config(DEFAULT_CONFIG_FILE)
+    elif len(sys.argv) > 1 and os.path.isfile(sys.argv[1]):
+        hosts = read_config(sys.argv[1])
+    elif len(sys.argv) > 1 and ("help" in sys.argv[1] or sys.argv[1] == "-h"):
+        print_help_message()
+        exit()
+    else:
+        print("Couldn't find your credentials!")
+        exit(1)
+
+    for host, credentials in hosts.items():
+        credentials_file = create_temporary_credentials_file(host, credentials)
+        folders = get_remote_folders(host, credentials_file)
+        mount_folders(folders, credentials)
+
+        os.remove(credentials_file)
+        subprocess.call("sudo setfacl -x '%s' '%s'" % (credentials['username'], MOUNT_POINT), shell=True)
+
+    print("\nYour remote folders have been successfully mounted to %s!" % MOUNT_POINT)
